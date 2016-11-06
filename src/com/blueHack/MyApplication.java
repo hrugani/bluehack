@@ -8,7 +8,6 @@ import com.codename1.ui.util.Resources;
 import com.codename1.ui.Command;
 import com.codename1.ui.FontImage;
 import com.codename1.ui.Image;
-import com.codename1.ui.Toolbar;
 import com.codename1.ui.events.ActionEvent;
 
 /**
@@ -45,14 +44,16 @@ public class MyApplication {
 
     protected void setBackCommand(Form f) {
         Command back = new Command("") {
-
             @Override
             public void actionPerformed(ActionEvent evt) {
                 home.showBack();
             }
-
         };
-        Image img = FontImage.createMaterial(FontImage.MATERIAL_ARROW_BACK, UIManager.getInstance().getComponentStyle("TitleCommand"));
+        
+        Image img = FontImage.createMaterial(
+                FontImage.MATERIAL_ARROW_BACK,
+                UIManager.getInstance().getComponentStyle("TitleCommand")
+        );
         back.setIcon(img);
         f.getToolbar().addCommandToLeftBar(back);
         f.getToolbar().setTitleCentered(true);
