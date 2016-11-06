@@ -10,6 +10,7 @@ import com.blueHack.entities.User;
 import com.codename1.ui.Button;
 import com.codename1.ui.Command;
 import com.codename1.ui.Container;
+import com.codename1.ui.Dialog;
 import com.codename1.ui.Form;
 import com.codename1.ui.Image;
 import com.codename1.ui.Label;
@@ -33,7 +34,7 @@ public class Login extends Form {
     
     public Login() {
         super();
-        setTitle("Login");
+        setTitle("Lohgo Alí App");
         
         preInit();
         init();
@@ -109,7 +110,9 @@ public class Login extends Form {
                 // User type defines kind of form that will
                 // be instantiated when Register Button is pressed 
                 User user;
-                if ("usuario".equals(userName.getText())) {
+                if ("usuario".equals(userName.getText())
+                    || "Usuario".equals(userName.getText())
+                    || "Usuário".equals(userName.getText())   ) {
                     user = new User();
                     user.setId("1");
                     user.setName("usuario");
@@ -144,6 +147,11 @@ public class Login extends Form {
 
     private Button createBtnNewUser() {
         Button btn = new Button("Novo Usuário");
+        btn.addActionListener(
+            (ActionListener) (ActionEvent evt) -> {
+                Dialog.show("Mensagem", "Em Desenvolvimento", "OK", null);
+            }
+        );        
         return btn;
     }
 
