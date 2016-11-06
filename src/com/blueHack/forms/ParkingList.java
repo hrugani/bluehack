@@ -46,6 +46,10 @@ public class ParkingList extends Form {
 
     private void posInit() {
         removeAll();
+        
+        ArrayList<Parking> listParkingTESTE =
+            Util.getInstance().getParkingList_json(Util.GEO_IBM, "100");
+        
         ArrayList<Parking> listParking =
             Util.getInstance().getParkingListTest();
         MyAccordion accr;

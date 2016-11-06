@@ -5,6 +5,10 @@
  */
 package com.blueHack.entities;
 
+import java.util.HashMap;
+import ca.weblite.codename1.json.JSONObject;
+
+
 /**
  *
  * @author hrugani
@@ -61,5 +65,17 @@ public class User {
     }
     
     
+    public String toJSON() {
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("id", getId());
+        map.put("name", getName());
+        map.put("type", getType());
+        return new JSONObject(map).toString();
+    }
+
+    @Override
+    public String toString() {
+        return toJSON();
+    }    
     
 }

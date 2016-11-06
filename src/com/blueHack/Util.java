@@ -5,6 +5,7 @@
  */
 package com.blueHack;
 
+import ca.weblite.codename1.json.JSONObject;
 import com.codename1.components.InfiniteProgress;
 import com.codename1.io.ConnectionRequest;
 import com.codename1.io.JSONParser;
@@ -19,6 +20,10 @@ import com.codename1.ui.Dialog;
 
 import com.blueHack.entities.Parking;
 import com.blueHack.entities.User;
+import com.codename1.util.StringUtil;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -71,13 +76,32 @@ public class Util {
     
     
     
-    
-    public ArrayList<Parking> getParkingList(String geoLocation) {
+    final String BASE_URL =
+      "https://b8a135a2-8d08-47f4-9427-1f1d561f44e4-bluemix.cloudant.com/parking/_design/parking/_geo/newGeoIndex";
+    public ArrayList<Parking> getParkingList(
+            String geoLocation,
+            String radius) {
 
+        // Cloudant inverts latitude/longitude  order
+        List<String> ll = StringUtil.tokenize(geoLocation, ",");
+        String longitude = ll.get(1);
+        String latitude  = ll.get(0);
+        
+        //String longitude = geoLocation.split(",")[1];
+        //String latitude  = geoLocation.split(",")[0];
+        
         ConnectionRequest r = new ConnectionRequest();
         
         r.setPost(false);
-        r.setUrl("/parkings");
+        String url = 
+         BASE_URL
+            + "?g=POINT("
+            + longitude + "," + latitude + ")"
+            + "&nearest=true" 
+            + "&radius=" + radius
+            + "&include-docs=true";        
+        r.setUrl(url);
+        
         InfiniteProgress prog = new InfiniteProgress();
         Dialog dlg = prog.showInifiniteBlocking();
         r.setDisposeOnCompletion(dlg);
@@ -106,6 +130,75 @@ public class Util {
         return null;
     }
     
+    final String BASE_URL_JSON =
+      "http://mytranslationservice.myblumix.net";
+
+    final String BASE_URL_JSON1 =
+      "http://mytests.mybluemix.net";
+    
+
+    public ArrayList<Parking> getParkingList_json(
+            String geoLocation,
+            String radius) {
+
+        // Cloudant inverts latitude/longitude  order
+        List<String> ll = StringUtil.tokenize(geoLocation, ",");
+        String longitude = ll.get(1);
+        String latitude  = ll.get(0);
+        
+        //String longitude = geoLocation.split(",")[1];
+        //String latitude  = geoLocation.split(",")[0];
+        
+        JsonConnectionRequest r = new JsonConnectionRequest();
+        
+        r.setPost(true);
+        r.setUrl(BASE_URL_JSON1 + "/teste");
+        r.setContentType("application/json");
+
+        String pUrl = "g=POINT("
+            + longitude + "," + latitude + ")"
+            + "&nearest=true" 
+            + "&radius=" + radius
+            + "&include-docs=true";        
+
+        HashMap<String,Object> map = new HashMap<>();
+        map.put("url", pUrl);
+        //map.put("g", "POINT(" + longitude + "," + latitude + ")");
+        //map.put("nearest", "true");
+        //map.put("radius", radius);
+        //map.put("include-docs", "true");
+        String json = new JSONObject(map).toString();
+        r.setRequestJsonString(json);
+        
+        InfiniteProgress prog = new InfiniteProgress();
+        Dialog dlg = prog.showInifiniteBlocking();
+        r.setDisposeOnCompletion(dlg);
+        NetworkManager.getInstance().addToQueueAndWait(r);
+        
+        ByteArrayInputStream bais = 
+            new ByteArrayInputStream(r.getResponseData());
+        InputStreamReader reader = new InputStreamReader(bais);
+        
+        ArrayList<Parking> resp = new ArrayList<>();
+        
+        JSONParser jp = new JSONParser();
+        try {
+            Map data = jp.parseJSON(reader);
+            Boolean b = true;
+            //ArrayList parkings = (ArrayList) data.get("parkings");
+            //for (Object parkings :  parkings) {
+            //    Parking parking = new Parking();
+            //    (LinkedHashMap) measure);
+            //    resp.add(ttLastMeasure);
+            //}     
+        }
+        catch (IOException ioex) {
+            
+        }
+                
+        return null;
+    }
+
     public ArrayList<Parking> getParkingListTest() {
         ArrayList<Parking> list = new ArrayList<>();
         Parking p;
@@ -126,4 +219,32 @@ public class Util {
         return list;
     }
     
+        
+    class JsonConnectionRequest extends ConnectionRequest {
+
+        private String json;
+
+        public JsonConnectionRequest() {
+            super();
+        }
+        public JsonConnectionRequest(String url) {
+            super(url);
+        }
+        public JsonConnectionRequest(String url, boolean post) {
+            super(url,post);
+        }
+
+        public void setRequestJsonString(String json) {
+            this.json = json;
+        }
+
+        @Override
+        protected void buildRequestBody(OutputStream os) throws IOException {
+            //super.buildRequestBody(os);
+            os.write(json.getBytes());
+        }
+
+
+    }
+
 }
