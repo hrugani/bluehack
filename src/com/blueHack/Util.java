@@ -23,6 +23,7 @@ import com.blueHack.entities.User;
 import com.codename1.util.StringUtil;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -78,6 +79,9 @@ public class Util {
     
     final String BASE_URL =
       "https://b8a135a2-8d08-47f4-9427-1f1d561f44e4-bluemix.cloudant.com/parking/_design/parking/_geo/newGeoIndex";
+
+    final String BASE_URL_NEW = "https://b8a135a2-8d08-47f4-9427-1f1d561f44e4-bluemix:6fb0614450820a29ad42f03a3fe3c54b2ec3e6a6b8b0dac8a0515dd714fdd879@b8a135a2-8d08-47f4-9427-1f1d561f44e4-bluemix.cloudant.com/parking/_design/parking/_geo/newGeoIndex";
+  // ?g=POINT(-71.0537124 42.3681995)&nearest=true&limit=5&radius=100&include_docs=true  
     public ArrayList<Parking> getParkingList(
             String geoLocation,
             String radius) {
@@ -93,13 +97,14 @@ public class Util {
         ConnectionRequest r = new ConnectionRequest();
         
         r.setPost(false);
+  // ?g=POINT(-71.0537124 42.3681995)&nearest=true&limit=5&radius=100&include_docs=true  
         String url = 
-         BASE_URL
+         BASE_URL_NEW
             + "?g=POINT("
-            + longitude + "," + latitude + ")"
+            + longitude + " " + latitude + ")"
             + "&nearest=true" 
             + "&radius=" + radius
-            + "&include-docs=true";        
+            + "&include_docs=true";        
         r.setUrl(url);
         
         InfiniteProgress prog = new InfiniteProgress();
@@ -116,18 +121,44 @@ public class Util {
         JSONParser jp = new JSONParser();
         try {
             Map data = jp.parseJSON(reader);
-            //ArrayList parkings = (ArrayList) data.get("parkings");
-            //for (Object parkings :  parkings) {
-            //    Parking parking = new Parking();
-            //    (LinkedHashMap) measure);
-            //    resp.add(ttLastMeasure);
-            //}     
+            ArrayList parkingList = (ArrayList) data.get("rows");
+            int n = parkingList.size();
+            for (int i = 0; i < n; i++) {
+                LinkedHashMap map = (LinkedHashMap) parkingList.get(i);
+                LinkedHashMap doc = (LinkedHashMap) map.get("doc");
+                String id = (String) doc.get("_id");
+                String rev = (String) doc.get("_rev");
+                String name = (String) doc.get("name");
+                String address = (String) doc.get("address");
+                Double parkingSpace = (Double) doc.get("parkingSpace"); 
+                LinkedHashMap geolocation = (LinkedHashMap) doc.get("geolocation");
+                    ArrayList coordinates = (ArrayList) geolocation.get("coordinates");
+                    Double lon = (Double) coordinates.get(0);
+                    Double lat = (Double) coordinates.get(1);                        
+                LinkedHashMap price = (LinkedHashMap) doc.get("price");
+                    Double priceHour = (Double) price.get("hour");
+                    Double priceDay = (Double) price.get("day");
+                    Double priceMonth = (Double) price.get("month");
+                    
+                    
+                Parking oParking = new Parking();
+                oParking.setId(id);
+                oParking.setName(name);
+                oParking.setAddress(address);
+                oParking.setParkingSpaces(new Double(parkingSpace).intValue());
+                oParking.setPriceHour(priceHour);
+                oParking.setPriceDay(priceDay);
+                oParking.setPriceMonth(priceMonth);
+                
+                resp.add(oParking);
+            }
+            
         }
         catch (IOException ioex) {
             
         }
                 
-        return null;
+        return resp;
     }
     
     final String BASE_URL_JSON =
